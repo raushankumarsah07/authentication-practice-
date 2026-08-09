@@ -3,14 +3,18 @@ import mongoose from "mongoose";
 import cors from "cors";
 import { employeeModel } from "./models/employee.js";
 import bcrypt from "bcrypt";
+import dotenv from "dotenv";
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
+dotenv.config();
 
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect("mongodb://127.0.0.1:27017/login_register");
+const uri = process.env.MONGO_URI;
+
+mongoose.connect(uri);
 
 app.get("/", (req, res) => {
   res.send("welcome to make it use and login authentication project.");
