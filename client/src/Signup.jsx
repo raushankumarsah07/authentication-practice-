@@ -10,6 +10,7 @@ function Signup() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    axios.defaults.withCredentials = true;
     axios
       .post("http://localhost:3000/register", { name, email, password })
       .then((result) => {

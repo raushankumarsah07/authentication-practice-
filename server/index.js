@@ -4,20 +4,43 @@ import cors from "cors";
 import { employeeModel } from "./models/employee.js";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const port = process.env.PORT || 3000;
 dotenv.config();
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    methods: ["GET", "POST"],
+    credentials: true,
+  }),
+);
+app.use(cookieParser());
 
 const uri = process.env.MONGO_URI;
-
 mongoose.connect(uri);
 
-app.get("/", (req, res) => {
-  res.send("welcome to make it use and login authentication project.");
+const verifyUser = (req, res, next) => {
+  const token = req.cookies.token;
+  console.log(token);
+  if (!token) {
+    return res.json("the token wat not available");
+  } else {
+    jwt.verify(token, "jwt-secret-key", (err, decoded) => {
+      if (err) {
+        return res.json("token is wrong");
+      }
+      next();
+    });
+  }
+};
+
+app.get("/dashboard", verifyUser, (req, res) => {
+  return res.json("success");
 });
 
 app.post("/register", (req, res) => {
@@ -44,6 +67,10 @@ app.post("/login", (req, res) => {
             console.log(err);
           }
           if (response) {
+            const token = jwt.sign({ email: user.email }, "jwt-secret-key", {
+              expiresIn: "1d",
+            });
+            res.cookie("token", token);
             res.json("success");
           } else {
             res.json("the password is incorrect");
